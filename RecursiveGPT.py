@@ -1,19 +1,10 @@
 import openai
 import os
 from tqdm import tqdm
-from time import strftime
+import sys
 
-# use current time to create output filename
-time_str = strftime('%Y%m%d_%H%M%S')
-output_name = f'output_{time_str}.txt'
-openai.api_key = 'YOUR-API-KEY'
 
-input_path = 'input.txt'
-output_path = output_name
-chunk_size = 3000
-prompt = 'The following are automated captions from a lecture. Use the captions to make brief and concise notes in bullet point form, as if you were a student watching this lecture.\n\n'
-
-def process_chunk(chunk):
+def process_chunk(prompt, chunk, output_path):
     with open(output_path, 'a') as output_file:
         messages = [{'role': 'system', 'content': 'I am a helpful assistant.'},
                 {'role': 'user', 'content': (prompt + ' '.join(chunk))}]
@@ -23,7 +14,7 @@ def process_chunk(chunk):
         response = response['choices'][0]['message']['content']
         output_file.write(response + '\n\n')
 
-def split_file_to_chunks(file_path):
+def split_file_to_chunks(file_path, chunk_size):
     with open(file_path, 'r') as file:
         content = file.read()
         words = content.split()
@@ -37,11 +28,41 @@ def split_file_to_chunks(file_path):
         print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
         input()
 
-        print(f'Writing full output to file {output_name}...')
+        print(f'Writing full output to file {output_path}...')
 
         for i in tqdm(range(0, len(words), chunk_size)):
             chunk = words[i:i+chunk_size]
-            process_chunk(chunk)
+            process_chunk(prompt, chunk, output_path)
+
 
 if __name__ == '__main__':
-    split_file_to_chunks(input_path)
+    api_key = input('Enter your OpenAI API key: ')
+    openai.api_key = api_key
+    # TODO: add checks for key validity
+
+    input_path = input('Enter the input path to the text file to process: ')
+    if os.path.exists(input_path) == False:
+        print(f'`{input_path}` can\'t be found.')
+        exit()
+
+    prompt = input('Enter the prompt to be prepended to each chunk of text: ')
+    if prompt == '':
+        print('A prompt is required to use this script.')
+        exit()
+
+    output_path = input('Enter the output path to the text file to write to (default: output.txt): ')
+    if output_path == '':
+        output_path = 'output.txt'
+        
+    chunk_size = int(input('Enter the number of words per prompt (default: 2500): '))
+    if chunk_size == '':
+        chunk_size = 2500
+    elif chunk_size < 1:
+        print('Chunk size must be greater than 0.')
+        exit()
+    elif chunk_size > 3000:
+        print('Chunk sizes greater than ~3000 are likely to fail due to model limitations. Continue? (y/n)')
+        if input() != 'y':
+            exit()
+        
+    split_file_to_chunks(prompt, input_path, output_path, chunk_size)
