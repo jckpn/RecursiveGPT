@@ -22,7 +22,7 @@ The ChatGPT outputs are recursively added to an output text file.
 
 Your prompts could be anything like:
 - _"Summarise the following lecture notes."_
-- _"Proofread the following, providing your response in the form 'original text' -> 'revised text'."_
+- _"Proofread the following, providing your response in the form \[original text -> revised text\]."_
 - _"Rewrite the following in the style of a pirate."_
 - _"Convert the following scientific paper into a child-friendly overview."_
 - _"Task: For each mention of a dog breed, state the breed and describe where in the text it occurs."_
