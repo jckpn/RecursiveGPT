@@ -1,6 +1,6 @@
 # RecursiveGPT
 
-Process large text files and documents with ChatGPT. Requires Python3 and an [OpenAI API key](https://platform.openai.com/account/api-keys).
+Process large text files and documents with ChatGPT. Requires [Python 3](https://www.python.org/downloads/) and an [OpenAI API key](https://platform.openai.com/account/api-keys).
 
 Use
 
