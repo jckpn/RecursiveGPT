@@ -24,9 +24,11 @@ def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
         cost_per_token = 0.0002/1000
         est_cost = est_tokens*cost_per_token
         num_chunks = round(len(words)/chunk_size)
+        est_time = est_tokens/4000*1.5 # around 1.5 mins per 4000 tokens
         
         print(f'\nEstimated tokens required: {est_tokens:.1f} ({num_chunks} prompts with {chunk_size} words each)')
         print(f'Estimated cost: between ${est_cost:.2f}-${est_cost*2:.2f}')
+        print(f'Estimated time: {est_time:.1f} minutes')
         print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
         input()
 
@@ -34,7 +36,8 @@ def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
 
         for i in tqdm(range(0, len(words), chunk_size)):
             chunk = words[i:i+chunk_size]
-            full_prompt = prompt + '\n(Note: below is an extract; words {i}-{i+chunk_size} of the {len(words)} word document.)\n\n'
+            full_prompt = prompt + f'\n(Note: the following is an extract, words {i}-{i+chunk_size} of the {len(words)} word document.)\n\n'
+            print(full_prompt)
             process_chunk(full_prompt, chunk, output_path)
         
     print(f'Finished writing to {output_path}.')
