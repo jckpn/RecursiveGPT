@@ -2,7 +2,7 @@
 
 Process large text files and documents with ChatGPT. Requires [Python 3](https://www.python.org/downloads/) and an [OpenAI API key](https://platform.openai.com/account/api-keys).
 
-Use
+## Use:
 
 ```bash
 git clone https://github.com/jckpn/RecursiveGPT.git
@@ -12,11 +12,15 @@ python RecursiveGPT.py
 ```
 ...and follow the prompts as given in the termimal.
 
-This works by splitting the file into chunks within the context window of ChatGPT (currently limited to 4096 tokens).
+## How it works
+
+This script works by splitting the file into chunks within the context window of ChatGPT (currently limited to 4096 tokens).
 You simply specify a prompt, and it'll get prepended to the start of each chunk.
 The ChatGPT outputs are recursively added to an output text file.
 
-Examples:
+## Examples
+
+Your prompts could be anything like:
 - _"Summarise the following lecture notes."_
 - _"Proofread the following, providing your response in the form 'original text' -> 'revised text'."_
 - _"Rewrite the following in the style of a pirate."_
