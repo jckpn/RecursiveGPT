@@ -4,13 +4,15 @@ Process large text files and documents with ChatGPT. Requires [Python 3](https:/
 
 ## Use:
 
+Currently command-line only.
+
 ```bash
 git clone https://github.com/jckpn/RecursiveGPT.git
 cd RecursiveGPT
 pip install openai os tqdm sys
 python RecursiveGPT.py
 ```
-...and follow the prompts as given in the termimal.
+Then just follow the prompts as given in the termimal.
 
 ## How it works
 
@@ -32,4 +34,4 @@ The prompt below was _"Convert these lecture captions to concise revision notes.
 
 I made this to help me with tasks like proofreading and lecture summaries. I have very little free time at the moment due to finals exams, but if you have any suggestions or contributions feel free to make a pull request.
 
-(Privacy note: no data is sent anywhere except for interacting with the ChatGPT API.)
+(Privacy note: No data is sent anywhere except for interacting with the ChatGPT API.)
