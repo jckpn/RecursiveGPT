@@ -19,11 +19,13 @@ def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
         content = file.read()
         words = content.split()
 
-        num_chunks = round(len(words)/chunk_size)
+        # confirm with user
+        est_tokens = len(words)/0.75
         cost_per_token = 0.0002/1000
-        est_cost = len(words)/0.75*cost_per_token
-
-        print(f'Estimated prompts required: {num_chunks:.1f} prompts ({chunk_size} words each)')
+        est_cost = est_tokens*cost_per_token
+        num_chunks = round(len(words)/chunk_size)
+        
+        print(f'\nEstimated tokens required: {est_tokens:.1f} ({num_chunks} prompts with {chunk_size} words each)')
         print(f'Estimated cost: between ${est_cost:.2f}-${est_cost*2:.2f}')
         print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
         input()
@@ -32,7 +34,10 @@ def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
 
         for i in tqdm(range(0, len(words), chunk_size)):
             chunk = words[i:i+chunk_size]
-            process_chunk(prompt, chunk, output_path)
+            full_prompt = prompt + '\n(Note: below is an extract; words {i}-{i+chunk_size} of the {len(words)} word document.)\n\n'
+            process_chunk(full_prompt, chunk, output_path)
+        
+    print(f'Finished writing to {output_path}.')
 
 
 if __name__ == '__main__':
@@ -54,10 +59,12 @@ if __name__ == '__main__':
     if output_path == '':
         output_path = 'output.txt'
         
-    chunk_size = int(input('Enter the number of words per prompt (default: 2500): '))
+    chunk_size = input('Enter the number of words per prompt (default: 2500): ')
     if chunk_size == '':
         chunk_size = 2500
-    elif chunk_size < 1:
+    else:
+        chunk_size = int(chunk_size)
+    if chunk_size < 1:
         print('Chunk size must be greater than 0.')
         exit()
     elif chunk_size > 3000:
