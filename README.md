@@ -8,7 +8,7 @@ Use
 git clone https://github.com/jckpn/RecursiveGPT.git
 cd RecursiveGPT
 pip install openai os tqdm sys
-python RecursiveGPT
+python RecursiveGPT.py
 ```
 ...and follow the prompts as given in the termimal.
 
