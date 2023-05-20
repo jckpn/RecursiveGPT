@@ -14,8 +14,8 @@ def process_chunk(prompt, chunk, output_path):
         response = response['choices'][0]['message']['content']
         output_file.write(response + '\n\n')
 
-def split_file_to_chunks(file_path, chunk_size):
-    with open(file_path, 'r') as file:
+def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
+    with open(input_path, 'r') as file:
         content = file.read()
         words = content.split()
 
