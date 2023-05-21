@@ -1,4 +1,4 @@
-# RecursiveGPT
+g RecursiveGPT
 
 Process large text files and documents with ChatGPT. Requires [Python 3](https://www.python.org/downloads/) and an [OpenAI API key](https://platform.openai.com/account/api-keys).
 
@@ -9,7 +9,7 @@ Currently command-line only.
 ```bash
 git clone https://github.com/jckpn/RecursiveGPT.git
 cd RecursiveGPT
-pip install openai os tqdm sys
+pip install -r requirements.txt
 python RecursiveGPT.py
 ```
 Then just follow the prompts as given in the termimal.

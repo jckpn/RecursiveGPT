@@ -4,17 +4,17 @@ from tqdm import tqdm
 import sys
 
 
-def process_chunk(prompt, chunk, output_path):
+def process_chunk(prompt, chunk, output_path, model):
     with open(output_path, 'a') as output_file:
         messages = [{'role': 'system', 'content': 'I am a helpful assistant.'},
                 {'role': 'user', 'content': (prompt + ' '.join(chunk))}]
         response = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
+            model=model,
             messages=messages)
         response = response['choices'][0]['message']['content']
         output_file.write(response + '\n\n')
 
-def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
+def split_file_to_chunks(prompt, input_path, output_path, chunk_size, model):
     with open(input_path, 'r') as file:
         content = file.read()
         words = content.split()
@@ -38,8 +38,8 @@ def split_file_to_chunks(prompt, input_path, output_path, chunk_size):
             chunk = words[i:i+chunk_size]
             full_prompt = prompt + f'\n(Note: the following is an extract, words {i}-{i+chunk_size} of the {len(words)} word document.)\n\n'
             print(full_prompt)
-            process_chunk(full_prompt, chunk, output_path)
-        
+            process_chunk(full_prompt, chunk, output_path, model)
+
     print(f'Finished writing to {output_path}.')
 
 
@@ -47,6 +47,10 @@ if __name__ == '__main__':
     api_key = input('Enter your OpenAI API key: ')
     openai.api_key = api_key
     # TODO: add checks for key validity
+
+    model = input('Enter the model to be used (default: gpt-3.5-turbo, available: gpt-4): ')
+    if model == '':
+        model = 'gpt-3.5-turbo'
 
     input_path = input('Enter the input path to the text file to process: ')
     if os.path.exists(input_path) == False:
@@ -75,4 +79,4 @@ if __name__ == '__main__':
         if input() != 'y':
             exit()
         
-    split_file_to_chunks(prompt, input_path, output_path, chunk_size)
+    split_file_to_chunks(prompt, input_path, output_path, chunk_size, model)
