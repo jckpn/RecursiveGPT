@@ -5,7 +5,7 @@ import sys
 import nltk
 nltk.download('punkt')
 
-def count_tokens(string: str, encoding_name: str) -> int:
+def count_tokens(string: str) -> int:
     num_tokens = len(string) // 4  # Divide the length of the text by 4
     return num_tokens
 
@@ -25,7 +25,7 @@ def split_file_to_chunks(prompt, input_path, output_path, model):
             current_chunk_length = 0
 
             for paragraph in paragraphs:
-                paragraph_length = count_tokens(paragraph, 'cl100k_base')
+                paragraph_length = count_tokens(paragraph)
 
                 if current_chunk_length + paragraph_length <= 3500:
                     current_chunk.append(paragraph)
@@ -48,11 +48,11 @@ def split_file_to_chunks(prompt, input_path, output_path, model):
             if current_chunk:
                 chunks.append('\n'.join(current_chunk))
 
+        confirm_proceed(content, len(chunks))
+
         with tqdm(total=len(chunks), desc="Processing chunks") as pbar:
             for i, chunk in enumerate(chunks):
                 full_prompt = prompt + f'\n(Note: the following is an extract, chunk {i + 1} of {len(chunks)})\n\n'
-                print(count_tokens(chunk, 'cl100k_base'))
-                print (full_prompt + ": " + chunk)
                 process_chunk(full_prompt, chunk, output_path, model)
                 pbar.update(1)
 
@@ -66,7 +66,19 @@ def process_chunk(prompt, chunk, output_path, model):
             model=model,
             messages=messages)
         response = response['choices'][0]['message']['content']
-        output_file.write(response + '\n\n')
+        output_file.write(response + '\n\n' + '++++++++++++++++++++++' + '\n\n')
+
+def confirm_proceed(content, chunk_count):
+    est_tokens = count_tokens(content)
+    cost_per_token = 0.0002/1000
+    est_cost = est_tokens*cost_per_token
+    est_time = est_tokens/4000*1.5 # around 1.5 mins per 4000 tokens
+
+    print(f'\nEstimated tokens required: {est_tokens:.1f} ({chunk_count} prompts)')
+    print(f'Estimated cost: between ${est_cost:.2f}-${est_cost*2:.2f}')
+    print(f'Estimated time: {est_time:.1f} minutes')
+    print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
+    input()
 
 if __name__ == '__main__':
     api_key = input('Enter your OpenAI API key: ')
