@@ -9,7 +9,7 @@ def count_tokens(string: str) -> int:
     num_tokens = len(string) // 4  # Divide the length of the text by 4
     return num_tokens
 
-def split_file_to_chunks(prompt, input_path, output_path, model):
+def split_file_to_chunks(prompt, input_path, output_path, model, token_max):
     with open(input_path, 'r') as file:
         content = file.read()
         paragraphs = content.split("\n")
@@ -27,11 +27,11 @@ def split_file_to_chunks(prompt, input_path, output_path, model):
             for paragraph in paragraphs:
                 paragraph_length = count_tokens(paragraph)
 
-                if current_chunk_length + paragraph_length <= 3500:
+                if current_chunk_length + paragraph_length <= token_max:
                     current_chunk.append(paragraph)
                     current_chunk_length += paragraph_length
                 else:
-                    if paragraph_length > 3500:
+                    if paragraph_length > token_max:
                         first_half, second_half = split_paragraph(paragraph)
                         chunks.append('\n'.join(current_chunk))
                         chunks.append(first_half.strip())
@@ -99,8 +99,13 @@ if __name__ == '__main__':
         print('A prompt is required to use this script.')
         exit()
 
+    token_max = 4098 - int(input('Enter the number of tokens you want the response to be (out of 4k total tokens): '))
+    if token_max == '':
+        print('A token count is required to use this script.')
+        exit()
+
     output_path = input('Enter the output path to the text file to write to (default: output.txt): ')
     if output_path == '':
         output_path = 'output.txt'
         
-    split_file_to_chunks(prompt, input_path, output_path, model)
+    split_file_to_chunks(prompt, input_path, output_path, model, token_max)
