@@ -2,46 +2,83 @@ import openai
 import os
 from tqdm import tqdm
 import sys
+import nltk
+nltk.download('punkt')
 
+def count_tokens(string: str) -> int:
+    num_tokens = len(string) // 4  # Divide the length of the text by 4
+    return num_tokens
+
+def split_file_to_chunks(prompt, input_path, output_path, model, token_max):
+    with open(input_path, 'r') as file:
+        content = file.read()
+        paragraphs = content.split("\n")
+        chunks = []
+
+        def split_paragraph(paragraph):
+            sentences = nltk.sent_tokenize(paragraph)
+            half = len(sentences) // 2
+            return ' '.join(sentences[:half]).strip(), ' '.join(sentences[half:]).strip()
+
+        with tqdm(total=len(paragraphs), desc="Processing paragraphs") as pbar:
+            current_chunk = []
+            current_chunk_length = 0
+
+            for paragraph in paragraphs:
+                paragraph_length = count_tokens(paragraph)
+
+                if current_chunk_length + paragraph_length <= token_max:
+                    current_chunk.append(paragraph)
+                    current_chunk_length += paragraph_length
+                else:
+                    if paragraph_length > token_max:
+                        first_half, second_half = split_paragraph(paragraph)
+                        chunks.append('\n'.join(current_chunk))
+                        chunks.append(first_half.strip())
+                        chunks.append(second_half.strip())
+                        current_chunk = []
+                        current_chunk_length = 0
+                    else:
+                        chunks.append('\n'.join(current_chunk))
+                        current_chunk = [paragraph]
+                        current_chunk_length = paragraph_length
+
+                pbar.update(1)
+
+            if current_chunk:
+                chunks.append('\n'.join(current_chunk))
+
+        confirm_proceed(content, len(chunks))
+
+        with tqdm(total=len(chunks), desc="Processing chunks") as pbar:
+            for i, chunk in enumerate(chunks):
+                full_prompt = prompt + f'\n(Note: the following is an extract, chunk {i + 1} of {len(chunks)})\n\n'
+                process_chunk(full_prompt, chunk, output_path, model)
+                pbar.update(1)
+
+        print(f'Finished writing to {output_path}.')
 
 def process_chunk(prompt, chunk, output_path, model):
     with open(output_path, 'a') as output_file:
         messages = [{'role': 'system', 'content': 'I am a helpful assistant.'},
-                {'role': 'user', 'content': (prompt + ' '.join(chunk))}]
+                {'role': 'user', 'content': (prompt + chunk)}]
         response = openai.ChatCompletion.create(
             model=model,
             messages=messages)
         response = response['choices'][0]['message']['content']
-        output_file.write(response + '\n\n')
+        output_file.write(response + '\n\n' + '++++++++++++++++++++++' + '\n\n')
 
-def split_file_to_chunks(prompt, input_path, output_path, chunk_size, model):
-    with open(input_path, 'r') as file:
-        content = file.read()
-        words = content.split()
+def confirm_proceed(content, chunk_count):
+    est_tokens = count_tokens(content)
+    cost_per_token = 0.0002/1000
+    est_cost = est_tokens*cost_per_token
+    est_time = est_tokens/4000*1.5 # around 1.5 mins per 4000 tokens
 
-        # confirm with user
-        est_tokens = len(words)/0.75
-        cost_per_token = 0.0002/1000
-        est_cost = est_tokens*cost_per_token
-        num_chunks = round(len(words)/chunk_size)
-        est_time = est_tokens/4000*1.5 # around 1.5 mins per 4000 tokens
-        
-        print(f'\nEstimated tokens required: {est_tokens:.1f} ({num_chunks} prompts with {chunk_size} words each)')
-        print(f'Estimated cost: between ${est_cost:.2f}-${est_cost*2:.2f}')
-        print(f'Estimated time: {est_time:.1f} minutes')
-        print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
-        input()
-
-        print(f'Writing full output to file {output_path}...')
-
-        for i in tqdm(range(0, len(words), chunk_size)):
-            chunk = words[i:i+chunk_size]
-            full_prompt = prompt + f'\n(Note: the following is an extract, words {i}-{i+chunk_size} of the {len(words)} word document.)\n\n'
-            print(full_prompt)
-            process_chunk(full_prompt, chunk, output_path, model)
-
-    print(f'Finished writing to {output_path}.')
-
+    print(f'\nEstimated tokens required: {est_tokens:.1f} ({chunk_count} prompts)')
+    print(f'Estimated cost: between ${est_cost:.2f}-${est_cost*2:.2f}')
+    print(f'Estimated time: {est_time:.1f} minutes')
+    print(f'Press RETURN to continue or exit (Ctrl+Z) to cancel.')
+    input()
 
 if __name__ == '__main__':
     api_key = input('Enter your OpenAI API key: ')
@@ -62,21 +99,13 @@ if __name__ == '__main__':
         print('A prompt is required to use this script.')
         exit()
 
+    token_max = 4098 - int(input('Enter the number of tokens you want the response to be (out of 4k total tokens): '))
+    if token_max == '':
+        print('A token count is required to use this script.')
+        exit()
+
     output_path = input('Enter the output path to the text file to write to (default: output.txt): ')
     if output_path == '':
         output_path = 'output.txt'
         
-    chunk_size = input('Enter the number of words per prompt (default: 2500): ')
-    if chunk_size == '':
-        chunk_size = 2500
-    else:
-        chunk_size = int(chunk_size)
-    if chunk_size < 1:
-        print('Chunk size must be greater than 0.')
-        exit()
-    elif chunk_size > 3000:
-        print('Chunk sizes greater than ~3000 are likely to fail due to model limitations. Continue? (y/n)')
-        if input() != 'y':
-            exit()
-        
-    split_file_to_chunks(prompt, input_path, output_path, chunk_size, model)
+    split_file_to_chunks(prompt, input_path, output_path, model, token_max)
