@@ -1,11 +1,17 @@
+import chardet
 import openai
 import os
 from tqdm import tqdm
 import sys
 
 
+def detect_file_encoding(file_path):
+    with open(file_path, 'rb') as file:
+        result = chardet.detect(file.read())
+    return result['encoding']
+
 def process_chunk(prompt, chunk, output_path, model):
-    with open(output_path, 'a') as output_file:
+    with open(output_path, 'a', encoding='utf-8') as output_file:  # Added encoding='utf-8'
         messages = [{'role': 'system', 'content': 'I am a helpful assistant.'},
                 {'role': 'user', 'content': (prompt + ' '.join(chunk))}]
         response = openai.ChatCompletion.create(
@@ -14,8 +20,10 @@ def process_chunk(prompt, chunk, output_path, model):
         response = response['choices'][0]['message']['content']
         output_file.write(response + '\n\n')
 
+
 def split_file_to_chunks(prompt, input_path, output_path, chunk_size, model):
-    with open(input_path, 'r') as file:
+    file_encoding = detect_file_encoding(input_path)
+    with open(input_path, 'r', encoding = file_encoding) as file:
         content = file.read()
         words = content.split()
 
