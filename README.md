@@ -1,6 +1,6 @@
 RecursiveGPT
 
-Process large text files and documents with ChatGPT. Requires [Python 3](https://www.python.org/downloads/) and an [OpenAI API key](https://platform.openai.com/account/api-keys).
+Process large text files and documents with ChatGPT (more APIs coming soon\*). Requires [Python 3](https://www.python.org/downloads/) and an [OpenAI API key](https://platform.openai.com/account/api-keys).
 
 ## Use:
 
@@ -32,6 +32,8 @@ Your prompts could be anything like:
 The prompt below was _"Convert these lecture captions to concise revision notes."_
 <img width="1033" alt="Screenshot 2023-05-20 at 16 09 06" src="https://github.com/jckpn/RecursiveGPT/assets/14837124/8b1a2fde-f11b-4ef7-9e27-fde418ee1418">
 
-I made this to help me with tasks like proofreading and lecture summaries. I have very little free time at the moment due to finals exams, but if you have any suggestions or contributions feel free to make a pull request.
+I made this to help me with tasks like proofreading and lecture summaries, but it works well for a range of tasks.
+
+\**I have very little free time at the moment due to my MSc and other jobs – pull requests would be appreciated!*
 
 (Privacy note: No data is sent anywhere except for interacting with the ChatGPT API.)
